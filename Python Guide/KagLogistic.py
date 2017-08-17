@@ -8,7 +8,9 @@ from sklearn import linear_model
 
 #Import Data
 df = pd.read_csv("train.csv")
-df = df.replace(np.nan, df['Age'].mean(), regex=True)
+df['Age'] = df['Age'].replace(np.nan, df['Age'].mean(), regex=True)
+df['Embarked'] = df['Embarked'].replace(np.nan, 0, regex=True)
+
 #df = df.fillna(value=-1)
 #Parsing for Titles
 
