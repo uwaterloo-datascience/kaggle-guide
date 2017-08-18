@@ -11,7 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This guide is based on R 3.3.2. We recommend downloading R [here](https://r-project.org/) along with [R Studio](https://www.rstudio.com/products/rstudio/download/), a set of integrated tools that will make your life a lot easier. This guide assumes that you have some sort of programming experience.
 
-This guide is written in something called R markdown, which allows us to describe our process while showing and executing code (kind of like a notebook). This notebook process is what Kaggle calls a **kernel**. When working in R Studio, pressing `ctrl + enter` will run the current line of code.
+This guide is written in something called R markdown, which allows us to describe our process while showing and executing code (kind of like a notebook). This notebook process is type of what Kaggle calls a **kernel**. When working in R Studio, pressing `ctrl + enter` will run the current line of code.
+
+---
+This guide will look at the Titanic dataset, we will see if we can predict what types of people would have survived on the Titanic.
 
 So first we will import some useful libraries. R is old and there are confusing things about the language that came up over time, the tidyverse stack is a set of libraries that make these functions more consistent and powerful.
 ```{R}
