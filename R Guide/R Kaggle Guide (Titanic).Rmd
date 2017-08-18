@@ -1,0 +1,93 @@
+---
+title: "R Kaggle Guide (Titanic)"
+author: "UWaterloo Data Science Club"
+date: "August 18, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This guide is based on R 3.3.2. We recommend downloading R [here](https://r-project.org/) along with [R Studio](https://www.rstudio.com/products/rstudio/download/), a set of integrated tools that will make your life a lot easier. This guide assumes that you have some sort of programming experience.
+
+This guide is written in something called R markdown, which allows us to describe our process while showing and executing code (kind of like a notebook). This notebook process is what Kaggle calls a **kernel**. When working in R Studio, pressing `ctrl + enter` will run the current line of code.
+
+So first we will import some useful libraries. R is old and there are confusing things about the language that came up over time, the tidyverse stack is a set of libraries that make these functions more consistent and powerful.
+```{R}
+library("tidyverse")
+```
+
+Note the conflict errors indicate that two different libraries have the same function name. We don't need to worry about this for now. Now we can import our data into a dataframe.
+
+```{R, echo=FALSE}
+titanic_data <- read_csv("../titanic_data/train.csv")  # .. indicates the parent folder
+```
+
+The code output tells us about how each column was imported such as what data type is stored. To understand more about what options you have, you can type `?read_csv` in the console, or `?<function_name>` for any function. If you don't know what exactly the function name is, you can do `??<query>` which will return you all manual pages relevant to the query. 
+
+Normally we won't worry to much about datatypes, but notice how certain columns like `Survived` and `Pclass` were imported as integers? The problem is that we use integers to differentiate the data value but there isn't any ineherent order to the numbers. Instead we can convert integers, characters, etc.to categories, which is called a **factor** in R.
+
+The `$` let's us select specific variables in a dataframe.
+
+```{R}
+titanic_data$Survived <- as.factor(titanic_data$Survived)  
+titanic_data$Pclass <- as.factor(titanic_data$Pclass)
+titanic_data$Sex <- as.factor(titanic_data$Sex)
+titanic_data$Embarked <- as.factor(titanic_data$Embarked)
+```
+
+We can observe the first `n` entries of our dataframe by using the `head()` function, likewise we to observe the last `n` entires we can use `tail()`. If there are too many variables, the output will omit them to save space.
+
+```{R}
+head(titanic_data, 5)
+```
+After a quick look, let's get a summary of our data.
+```{R}
+summary(titanic_data)
+```
+The `NA's` in some columns indicate the number of missing values. One could either remove the rows with missing values, or try to fill in the data based on surrounding data. Since our dataset is fairly small, the latter is preferred. This is called **imputation**.
+
+Let's get a closer look at who these people with missing embarked locations are. We can use the `filter()` function to select rows that satisfy a certain criteria. Note that we do not have to use $ to indicate that `Embarked` is from `titanic_data` because it's inferred when we put what data we're looking at as the first parameter in `filter`.
+
+**NOTE:** `NA == NA` will return `NA`. While this may be confusing think of it this way. 
+```{R}
+alice.age <- NA  # We don't know Alice's age
+bob.age  <- NA  # We don't know Bob's age
+alice.age == bob.age  # Are Alice and Bob the same age? We don't know!
+```
+
+That's why we use `is.na` to test for missing values instead.  
+
+**NOTE:** The code below might start to look a little convoluted. We'll soon look at some syntactic sugar to make everything easier to read.
+
+```{R}
+filter(titanic_data, is.na(Embarked))[c('Name', 'Fare', 'Ticket', 'Cabin')]
+```
+It seems the passenger's had the same ticket, hence the identical fare. Let's visualize how much a passenger paid and their class based off the location and they embarked. We add $80 as the dashed red line to make a comparison.
+```{R}
+ggplot(filter(titanic_data, !is.na(Embarked)), 
+       aes(x = Embarked, y = Fare, fill = Pclass)) +
+  geom_boxplot() +
+  scale_y_continuous() +
+  labs(title = "Ticket Price from Embark Location",
+       y = "Fare [$]") +
+  geom_hline(aes(yintercept = 80),
+             colour = "red", linetype = "dashed", lwd = 1)
+```
+
+The red line is aligned with the median of the fare paid in location C. Thus we will fill in the missing embarked locations with C. 
+
+```{R}
+titanic_data$Embarked[is.na(titanic_data$Embarked)] <- 'C'
+```
+
+## INCOMPLETE SECTION
+
+Another method of imputation is through prediction. It would be naive to use simple methods such as mean because we have other data that hint towards the age of a passenger. We can make a model to estimate the age from the other information we have.
+
+```{R}
+model <- lm(Age ~ Survived + Pclass * Fare, titanic_data)
+summary(model)
+```
+
